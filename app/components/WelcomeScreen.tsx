@@ -15,7 +15,7 @@ export default function WelcomeScreen() {
           {/* Medallion Icon */}
           <View className="mb-4">
             <Image
-              source={require("../../assets/images/icon.png")}
+              source={require("../../assets/images/logo.png")}
               style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 4, borderColor: colorScheme === 'dark' ? '#38bdf8' : '#2563eb', backgroundColor: colorScheme === 'dark' ? '#1e293b' : '#fff' }}
               resizeMode="cover"
             />
