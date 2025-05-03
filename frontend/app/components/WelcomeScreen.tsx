@@ -3,8 +3,16 @@ import { Text, View, Pressable, ScrollView, Image } from "react-native";
 import { useColorScheme } from "nativewind";
 import { StatusBar } from "expo-status-bar";
 import { MaterialCommunityIcons, FontAwesome5, Ionicons, Feather } from '@expo/vector-icons';
+import { initDatabase, insertUser } from '../../services/db/sqlite';
+import { useEffect } from "react";
 
 export default function WelcomeScreen() {
+  // Initialize the database
+  useEffect(() => {
+    initDatabase(); // Initialize the database when the component mounts
+  }, []);
+
+  
   const { colorScheme, setColorScheme } = useColorScheme();
   return (
     <View className="flex-1 bg-white dark:bg-gray-900">

@@ -3,7 +3,7 @@ import { View, Text, Image, Pressable, Modal, Switch } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import { useRouter } from 'expo-router';
 import SettingSection from '../components/SettingSection';
-import { useUser } from '../components/UserContext';
+import { useUser } from '../../context/UserContext';
 
 export default function ProfileScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();

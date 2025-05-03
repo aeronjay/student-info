@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { UserProvider } from './components/UserContext';
+import { UserProvider } from '../context/UserContext';
 import "./globals.css"
 
 export default function RootLayout() {

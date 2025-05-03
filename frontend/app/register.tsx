@@ -4,8 +4,8 @@ import { useColorScheme } from "nativewind";
 import { StatusBar } from "expo-status-bar";
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
-import { initDatabase, insertUser } from './db/sqlite';
-import { useUser, User } from './components/UserContext';
+import { initDatabase, insertUser } from '../services/db/sqlite';
+import { useUser, User } from '../context/UserContext';
 
 function generateRandomId(length = 16) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

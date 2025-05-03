@@ -4,8 +4,8 @@ import { useColorScheme } from "nativewind";
 import { StatusBar } from "expo-status-bar";
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { Link, useRouter } from "expo-router";
-import { db } from '../db/sqlite';
-import { useUser, User } from './UserContext';
+import { db } from '../../services/db/sqlite';
+import { useUser, User } from '../../context/UserContext';
 
 export default function LoginScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
