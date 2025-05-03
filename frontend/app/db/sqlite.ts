@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
-export type UserRole = 'student' | 'pending_professor' | 'professor' | 'superprofessor';
+export type UserRole = 'student' |'professor';
 
 const db = SQLite.openDatabaseSync('studentinfo.db');
 

@@ -20,11 +20,10 @@ export default function LoginScreen() {
       Alert.alert('Error', 'Please enter both email and password.');
       return;
     }
-    // Query the user from SQLite
     try {
       const result = db.getFirstSync(
         'SELECT * FROM users WHERE email = ? AND role = ?',
-        [email, 'student']
+        [email, role]
       ) as User;
       if (result) {
         setUser({
@@ -33,9 +32,13 @@ export default function LoginScreen() {
           email: result.email,
           role: result.role,
         });
-        router.replace('/student/dashboard');
+        if (role === 'student') {
+          router.replace('/student/dashboard');
+        } else {
+          router.replace('/professor/dashboard');
+        }
       } else {
-        Alert.alert('Login Failed', 'No student found with these credentials.');
+        Alert.alert('Login Failed', `No ${role} found with these credentials.`);
       }
     } catch (err: any) {
       Alert.alert('Login Error', err.message || 'Something went wrong.');

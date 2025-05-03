@@ -37,15 +37,16 @@ export default function RegisterScreen() {
     }
     setLoading(true);
     try {
-      const userRole = role === 'student' ? 'student' : 'pending_professor';
+      const userRole = role === 'student' ? 'student' : 'professor';
       const userId = generateRandomId();
       insertUser(userId, name, email, userRole); // uses runSync from sqlite.ts
       if (userRole === 'student') {
         setUser({ id: userId, name, email, role: userRole } as User);
         router.replace('/student/dashboard');
-      } else {
-        Alert.alert("Success", "Registration submitted! Await superprofessor approval.");
-        router.replace('/login');
+      } else if(userRole === 'professor') {
+        setUser({ id: userId, name, email, role: userRole } as User);
+        router.replace('/professor/dashboard'); 
+        
       }
     } catch (err: any) {
       Alert.alert("Registration Error", err.message || 'Something went wrong.');
