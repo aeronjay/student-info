@@ -54,6 +54,10 @@ export default function RegisterScreen() {
   return (
     <View className="flex-1 bg-white dark:bg-gray-900 justify-center px-6">
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} translucent backgroundColor="transparent" />
+      {/* Back Icon Top Left */}
+      <Pressable onPress={() => router.replace('/')} style={{ position: 'absolute', top: 48, left: 24, zIndex: 10 }} hitSlop={16}>
+        <MaterialCommunityIcons name="arrow-left" size={28} color={colorScheme === 'dark' ? '#7dd3fc' : '#2563eb'} />
+      </Pressable>
       <View className="items-center mb-8">
         <MaterialCommunityIcons name="account-plus" size={64} color={colorScheme === 'dark' ? '#7dd3fc' : '#2563eb'} />
         <Text className="text-3xl font-extrabold text-blue-700 dark:text-blue-400 mt-2 mb-1">Register</Text>

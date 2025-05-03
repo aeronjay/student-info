@@ -37,6 +37,10 @@ export default function LoginScreen() {
   return (
     <View className="flex-1 bg-white dark:bg-gray-900 justify-center px-6">
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} translucent backgroundColor="transparent" />
+      {/* Back Icon Top Left */}
+      <Pressable onPress={() => router.replace('/')} style={{ position: 'absolute', top: 48, left: 24, zIndex: 10 }} hitSlop={16}>
+        <MaterialCommunityIcons name="arrow-left" size={28} color={colorScheme === 'dark' ? '#7dd3fc' : '#2563eb'} />
+      </Pressable>
       {/* Header */}
       <View className="items-center mb-8">
         <MaterialCommunityIcons name="account-circle" size={64} color={colorScheme === 'dark' ? '#7dd3fc' : '#2563eb'} />
