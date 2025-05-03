@@ -5,6 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { initDatabase, insertUser } from './db/sqlite';
+import { useUser, User } from './components/UserContext';
 
 function generateRandomId(length = 16) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -18,6 +19,7 @@ function generateRandomId(length = 16) {
 export default function RegisterScreen() {
   const { colorScheme } = useColorScheme();
   const router = useRouter();
+  const { setUser } = useUser();
   const [role, setRole] = useState<'student' | 'professor'>('student');
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -39,6 +41,7 @@ export default function RegisterScreen() {
       const userId = generateRandomId();
       insertUser(userId, name, email, userRole); // uses runSync from sqlite.ts
       if (userRole === 'student') {
+        setUser({ id: userId, name, email, role: userRole } as User);
         router.replace('/student/dashboard');
       } else {
         Alert.alert("Success", "Registration submitted! Await superprofessor approval.");

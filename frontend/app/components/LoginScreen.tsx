@@ -5,6 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { Link, useRouter } from "expo-router";
 import { db } from '../db/sqlite';
+import { useUser, User } from './UserContext';
 
 export default function LoginScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
@@ -12,6 +13,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const { setUser } = useUser();
 
   function handleLogin() {
     if (!email || !password) {
@@ -23,8 +25,14 @@ export default function LoginScreen() {
       const result = db.getFirstSync(
         'SELECT * FROM users WHERE email = ? AND role = ?',
         [email, 'student']
-      );
+      ) as User;
       if (result) {
+        setUser({
+          id: result.id,
+          name: result.name,
+          email: result.email,
+          role: result.role,
+        });
         router.replace('/student/dashboard');
       } else {
         Alert.alert('Login Failed', 'No student found with these credentials.');
