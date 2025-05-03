@@ -94,18 +94,6 @@ export default function LoginScreen() {
           </Pressable>
         </Link>
       </View>
-      {/* Dark/Light Mode Toggle */}
-      <View className="items-center">
-        <Pressable
-          className="flex-row items-center px-4 py-2 rounded-full border border-blue-400 dark:border-blue-300"
-          onPress={() => setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')}
-        >
-          <MaterialCommunityIcons name={colorScheme === 'dark' ? 'white-balance-sunny' : 'moon-waning-crescent'} size={20} color={colorScheme === 'dark' ? '#fbbf24' : '#2563eb'} className="mr-2" />
-          <Text className="font-semibold text-blue-700 dark:text-blue-300">
-            {colorScheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-          </Text>
-        </Pressable>
-      </View>
     </View>
   );
 }
