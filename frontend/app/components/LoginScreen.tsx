@@ -1,14 +1,38 @@
 import { useState } from "react";
-import { View, Text, Pressable, TextInput } from "react-native";
+import { View, Text, Pressable, TextInput, Alert } from "react-native";
 import { useColorScheme } from "nativewind";
 import { StatusBar } from "expo-status-bar";
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import { Link, useRouter } from "expo-router";
+import { db } from '../db/sqlite';
 
 export default function LoginScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
   const [role, setRole] = useState<'student' | 'professor'>('student');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
+
+  function handleLogin() {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password.');
+      return;
+    }
+    // Query the user from SQLite
+    try {
+      const result = db.getFirstSync(
+        'SELECT * FROM users WHERE email = ? AND role = ?',
+        [email, 'student']
+      );
+      if (result) {
+        router.replace('/student/dashboard');
+      } else {
+        Alert.alert('Login Failed', 'No student found with these credentials.');
+      }
+    } catch (err: any) {
+      Alert.alert('Login Error', err.message || 'Something went wrong.');
+    }
+  }
 
   return (
     <View className="flex-1 bg-white dark:bg-gray-900 justify-center px-6">
@@ -59,9 +83,17 @@ export default function LoginScreen() {
         />
       </View>
       {/* Login Button */}
-      <Pressable className="bg-blue-600 dark:bg-blue-500 py-3 rounded-full shadow-lg items-center mb-6 active:opacity-80">
+      <Pressable className="bg-blue-600 dark:bg-blue-500 py-3 rounded-full shadow-lg items-center mb-6 active:opacity-80" onPress={handleLogin}>
         <Text className="text-white text-lg font-bold">Login as {role.charAt(0).toUpperCase() + role.slice(1)}</Text>
       </Pressable>
+      {/* Register Redirect */}
+      <View className="items-center mb-4">
+        <Link href="/register" asChild>
+          <Pressable>
+            <Text className="text-blue-600 dark:text-blue-300 font-semibold">Don't have an account? Register</Text>
+          </Pressable>
+        </Link>
+      </View>
       {/* Dark/Light Mode Toggle */}
       <View className="items-center">
         <Pressable
