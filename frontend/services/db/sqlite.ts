@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 export type UserRole = 'student' | 'professor';
+export type PostType = 'assignment' | 'announcement';
 
 const db = SQLite.openDatabaseSync('studentinfo.db');
 
@@ -33,6 +34,20 @@ export function initDatabase() {
       studentId TEXT NOT NULL,
       classId TEXT NOT NULL,
       PRIMARY KEY (studentId, classId)
+    );`
+  );
+  
+  // Create class posts table (assignments and announcements)
+  db.runSync(
+    `CREATE TABLE IF NOT EXISTS class_posts (
+      id TEXT PRIMARY KEY NOT NULL,
+      classId TEXT NOT NULL,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      type TEXT NOT NULL,
+      dueDate TEXT,
+      createdAt TEXT NOT NULL,
+      FOREIGN KEY (classId) REFERENCES classes (id)
     );`
   );
 }
@@ -96,6 +111,33 @@ export function getStudentClasses(studentId: string) {
 
 export function getClassByCode(classCode: string) {
   return db.getFirstSync('SELECT * FROM classes WHERE classCode = ?', [classCode]);
+}
+
+// New functions for class posts (assignments and announcements)
+export function createClassPost(
+  id: string,
+  classId: string,
+  title: string,
+  content: string,
+  type: PostType,
+  dueDate: string | null = null
+) {
+  const createdAt = new Date().toISOString();
+  db.runSync(
+    'INSERT INTO class_posts (id, classId, title, content, type, dueDate, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [id, classId, title, content, type, dueDate, createdAt]
+  );
+}
+
+export function getClassPosts(classId: string) {
+  return db.getAllSync(
+    'SELECT * FROM class_posts WHERE classId = ? ORDER BY createdAt DESC',
+    [classId]
+  );
+}
+
+export function getClassDetails(classId: string) {
+  return db.getFirstSync('SELECT * FROM classes WHERE id = ?', [classId]);
 }
 
 export { db };

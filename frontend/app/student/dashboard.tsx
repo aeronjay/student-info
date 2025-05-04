@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, Alert } from 'react-native';
+import { View, Text, TextInput, Pressable, FlatList, Alert, TouchableOpacity } from 'react-native';
 import { useUser } from '../../context/UserContext';
 import { getStudentClasses, getClassByCode, joinClass } from '../../services/db/sqlite';
+import ClassDetailModal from '../components/classroom/ClassDetailModal';
 
 interface Class {
   id: string;
@@ -28,6 +29,10 @@ export default function DashboardScreen() {
   const [joinedClasses, setJoinedClasses] = useState<any[]>([]);
   const [classCode, setClassCode] = useState('');
   const [refresh, setRefresh] = useState(false);
+  
+  // Class Detail Modal state
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [classDetailVisible, setClassDetailVisible] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -55,11 +60,22 @@ export default function DashboardScreen() {
       Alert.alert('Error', err.message || 'Failed to join class.');
     }
   };
+  
+  const handleOpenClassDetail = (classId: string) => {
+    setSelectedClassId(classId);
+    setClassDetailVisible(true);
+  };
+  
+  const handleCloseClassDetail = () => {
+    setClassDetailVisible(false);
+    setSelectedClassId(null);
+  };
 
   return (
     <View className="flex-1 bg-white dark:bg-gray-900 px-6 pt-8">
       <Text className="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-4">Student Dashboard</Text>
       <Text className="mb-4 text-gray-700 dark:text-gray-300">Welcome to your dashboard!</Text>
+      
       <View className="mb-6">
         <Text className="text-lg font-bold text-blue-700 dark:text-blue-300 mb-2">Join a Class</Text>
         <View className="flex-row items-center mb-2">
@@ -74,18 +90,29 @@ export default function DashboardScreen() {
           </Pressable>
         </View>
       </View>
+      
       <Text className="text-lg font-bold text-blue-700 dark:text-blue-300 mb-2">Your Classes</Text>
       <FlatList
         data={joinedClasses}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <View className="bg-blue-50 dark:bg-blue-950 rounded-xl p-4 mb-3">
+          <TouchableOpacity 
+            onPress={() => handleOpenClassDetail(item.id)}
+            className="bg-blue-50 dark:bg-blue-950 rounded-xl p-4 mb-3"
+          >
             <Text className="font-bold text-blue-700 dark:text-blue-300">{item.subject}</Text>
             <Text className="text-gray-700 dark:text-gray-300">Code: {item.classCode}</Text>
             <Text className="text-gray-700 dark:text-gray-300">Schedule: {formatSchedule(item.scheduleStart, item.scheduleEnd)}</Text>
-          </View>
+          </TouchableOpacity>
         )}
         ListEmptyComponent={<Text className="text-gray-500 dark:text-gray-400 mb-4">You have not joined any classes yet.</Text>}
+      />
+      
+      {/* Class Detail Modal */}
+      <ClassDetailModal 
+        visible={classDetailVisible}
+        onClose={handleCloseClassDetail}
+        classId={selectedClassId}
       />
     </View>
   );
