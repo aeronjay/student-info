@@ -4,6 +4,7 @@ import { useUser } from '../../../context/UserContext';
 import { getClassDetails, getClassPosts } from '../../../services/db/sqlite';
 import DraggableModal from './DraggableModal';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import SubmissionsModal from './SubmissionsModal';
 
 interface ClassDetailModalProps {
   visible: boolean;
@@ -39,6 +40,10 @@ export default function ClassDetailModal({ visible, onClose, classId, isTeacher 
   const [posts, setPosts] = useState<ClassPost[]>([]);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  
+  // State for submissions modal
+  const [submissionsModalVisible, setSubmissionsModalVisible] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<ClassPost | null>(null);
 
   useEffect(() => {
     if (visible && classId) {
@@ -88,6 +93,11 @@ export default function ClassDetailModal({ visible, onClose, classId, isTeacher 
     return `${day}, ${formatTime(start)} - ${formatTime(end)}`;
   }
 
+  const handleViewSubmissions = (post: ClassPost) => {
+    setSelectedAssignment(post);
+    setSubmissionsModalVisible(true);
+  };
+
   const renderPostItem = (post: ClassPost) => {
     return (
       <View key={post.id} style={[styles.postItem, { backgroundColor: isDark ? '#374151' : '#f3f4f6' }]}>
@@ -115,56 +125,81 @@ export default function ClassDetailModal({ visible, onClose, classId, isTeacher 
             </Text>
           </View>
         )}
+        
+        {isTeacher && post.type === 'assignment' && (
+          <TouchableOpacity 
+            style={[styles.viewSubmissionsButton, { backgroundColor: isDark ? '#1e40af' : '#3b82f6' }]}
+            onPress={() => handleViewSubmissions(post)}
+          >
+            <MaterialCommunityIcons name="inbox-arrow-down" size={16} color="white" />
+            <Text style={styles.viewSubmissionsText}>View Submissions</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
 
   return (
-    <DraggableModal 
-      visible={visible} 
-      onClose={onClose}
-      title={classDetails?.subject || 'Class Details'}
-    >
-      {loading ? (
-        <ActivityIndicator size="large" color="#3b82f6" />
-      ) : (
-        <View style={styles.container}>
-          <ScrollView style={styles.scrollView}>
-            {classDetails && (
-              <View style={styles.classInfoSection}>
-                <Text style={[styles.classCode, { color: isDark ? '#9ca3af' : '#6b7280' }]}>{classDetails.subjectCode}</Text>
-                <Text style={[styles.classDescription, { color: isDark ? '#d1d5db' : '#4b5563' }]}>{classDetails.subjectInfo}</Text>
-                <Text style={[styles.classSchedule, { color: isDark ? '#d1d5db' : '#4b5563' }]}>
-                  {formatSchedule(classDetails.scheduleStart, classDetails.scheduleEnd)}
+    <>
+      <DraggableModal 
+        visible={visible} 
+        onClose={onClose}
+        title={classDetails?.subject || 'Class Details'}
+      >
+        {loading ? (
+          <ActivityIndicator size="large" color="#3b82f6" />
+        ) : (
+          <View style={styles.container}>
+            <ScrollView style={styles.scrollView}>
+              {classDetails && (
+                <View style={styles.classInfoSection}>
+                  <Text style={[styles.classCode, { color: isDark ? '#9ca3af' : '#6b7280' }]}>{classDetails.subjectCode}</Text>
+                  <Text style={[styles.classDescription, { color: isDark ? '#d1d5db' : '#4b5563' }]}>{classDetails.subjectInfo}</Text>
+                  <Text style={[styles.classSchedule, { color: isDark ? '#d1d5db' : '#4b5563' }]}>
+                    {formatSchedule(classDetails.scheduleStart, classDetails.scheduleEnd)}
+                  </Text>
+                </View>
+              )}
+
+              <View style={[styles.divider, { backgroundColor: isDark ? '#374151' : '#e5e7eb' }]} />
+              
+              <View style={styles.postsSection}>
+                <Text style={[styles.sectionTitle, { color: isDark ? '#f3f4f6' : '#1f2937' }]}>
+                  {posts.length > 0 ? 'Assignments & Announcements' : 'No assignments or announcements yet'}
                 </Text>
+                
+                {posts.map(renderPostItem)}
+              </View>
+            </ScrollView>
+            
+            {/* Add Post Button (visible only for professors/teachers) */}
+            {isTeacher && onAddPost && (
+              <View style={styles.fabContainer}>
+                <Pressable
+                  onPress={onAddPost}
+                  style={styles.fabButton}
+                >
+                  <MaterialCommunityIcons name="plus" size={28} color="white" />
+                </Pressable>
               </View>
             )}
-
-            <View style={[styles.divider, { backgroundColor: isDark ? '#374151' : '#e5e7eb' }]} />
-            
-            <View style={styles.postsSection}>
-              <Text style={[styles.sectionTitle, { color: isDark ? '#f3f4f6' : '#1f2937' }]}>
-                {posts.length > 0 ? 'Assignments & Announcements' : 'No assignments or announcements yet'}
-              </Text>
-              
-              {posts.map(renderPostItem)}
-            </View>
-          </ScrollView>
-          
-          {/* Add Post Button (visible only for professors/teachers) */}
-          {isTeacher && onAddPost && (
-            <View style={styles.fabContainer}>
-              <Pressable
-                onPress={onAddPost}
-                style={styles.fabButton}
-              >
-                <MaterialCommunityIcons name="plus" size={28} color="white" />
-              </Pressable>
-            </View>
-          )}
-        </View>
+          </View>
+        )}
+      </DraggableModal>
+      
+      {/* Submissions Modal */}
+      {selectedAssignment && (
+        <SubmissionsModal
+          visible={submissionsModalVisible}
+          onClose={() => {
+            setSubmissionsModalVisible(false);
+            setSelectedAssignment(null);
+          }}
+          assignmentId={selectedAssignment?.id}
+          assignmentTitle={selectedAssignment?.title}
+        />
       )}
-    </DraggableModal>
+    </>
   );
 }
 
@@ -240,10 +275,24 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 5,
     alignSelf: 'flex-start',
+    marginBottom: 10
   },
   dueDateText: {
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  viewSubmissionsButton: {
+    padding: 8,
+    borderRadius: 5,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  viewSubmissionsText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: 'white',
+    marginLeft: 5,
   },
   fabContainer: {
     position: 'absolute',

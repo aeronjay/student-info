@@ -1,7 +1,9 @@
 import * as SQLite from 'expo-sqlite';
+import * as FileSystem from 'expo-file-system';
 
 export type UserRole = 'student' | 'professor';
 export type PostType = 'assignment' | 'announcement';
+export type SubmissionStatus = 'pending' | 'submitted' | 'graded';
 
 const db = SQLite.openDatabaseSync('studentinfo.db');
 
@@ -48,6 +50,24 @@ export function initDatabase() {
       dueDate TEXT,
       createdAt TEXT NOT NULL,
       FOREIGN KEY (classId) REFERENCES classes (id)
+    );`
+  );
+
+  // Create assignment submissions table
+  db.runSync(
+    `CREATE TABLE IF NOT EXISTS assignment_submissions (
+      id TEXT PRIMARY KEY NOT NULL,
+      assignmentId TEXT NOT NULL,
+      studentId TEXT NOT NULL,
+      status TEXT NOT NULL,
+      filePath TEXT,
+      fileName TEXT,
+      submittedAt TEXT,
+      grade TEXT,
+      feedback TEXT,
+      gradedAt TEXT,
+      FOREIGN KEY (assignmentId) REFERENCES class_posts (id),
+      FOREIGN KEY (studentId) REFERENCES users (id)
     );`
   );
 }
@@ -142,14 +162,108 @@ export function getClassDetails(classId: string) {
 
 export function getStudentAllAssignments(studentId: string) {
   return db.getAllSync(
-    `SELECT cp.*, c.subject, c.subjectCode 
+    `SELECT cp.*, c.subject, c.subjectCode, 
+            COALESCE(sub.status, 'pending') as status,
+            sub.grade, sub.filePath, sub.fileName, sub.id as submissionId
      FROM class_posts cp
      JOIN classes c ON cp.classId = c.id
      JOIN student_classes sc ON c.id = sc.classId
+     LEFT JOIN assignment_submissions sub ON cp.id = sub.assignmentId AND sub.studentId = ?
      WHERE sc.studentId = ? AND cp.type = 'assignment'
      ORDER BY cp.dueDate ASC`,
-    [studentId]
+    [studentId, studentId]
   );
+}
+
+// New functions for assignment submissions
+export function submitAssignment(
+  id: string,
+  assignmentId: string,
+  studentId: string,
+  filePath: string | null = null,
+  fileName: string | null = null
+) {
+  const submittedAt = new Date().toISOString();
+  db.runSync(
+    'INSERT OR REPLACE INTO assignment_submissions (id, assignmentId, studentId, status, filePath, fileName, submittedAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [id, assignmentId, studentId, 'submitted', filePath, fileName, submittedAt]
+  );
+}
+
+export function markAssignmentAsDone(
+  id: string,
+  assignmentId: string,
+  studentId: string
+) {
+  const submittedAt = new Date().toISOString();
+  db.runSync(
+    'INSERT OR REPLACE INTO assignment_submissions (id, assignmentId, studentId, status, submittedAt) VALUES (?, ?, ?, ?, ?)',
+    [id, assignmentId, studentId, 'submitted', submittedAt]
+  );
+}
+
+export function gradeAssignment(
+  submissionId: string,
+  grade: string,
+  feedback: string = ''
+) {
+  const gradedAt = new Date().toISOString();
+  db.runSync(
+    'UPDATE assignment_submissions SET status = ?, grade = ?, feedback = ?, gradedAt = ? WHERE id = ?',
+    ['graded', grade, feedback, gradedAt, submissionId]
+  );
+}
+
+export function getStudentSubmission(assignmentId: string, studentId: string) {
+  return db.getFirstSync(
+    'SELECT * FROM assignment_submissions WHERE assignmentId = ? AND studentId = ?',
+    [assignmentId, studentId]
+  );
+}
+
+export function getSubmissionsForAssignment(assignmentId: string) {
+  return db.getAllSync(
+    `SELECT sub.*, u.name as studentName 
+     FROM assignment_submissions sub
+     JOIN users u ON sub.studentId = u.id
+     WHERE sub.assignmentId = ?`,
+    [assignmentId]
+  );
+}
+
+// Function to save uploaded file
+export async function saveSubmissionFile(fileUri: string, studentId: string, assignmentId: string) {
+  try {
+    const fileInfo = await FileSystem.getInfoAsync(fileUri);
+    if (!fileInfo.exists) {
+      throw new Error('File does not exist');
+    }
+    
+    // Create directory if it doesn't exist
+    const dirPath = `${FileSystem.documentDirectory}submissions/${studentId}/`;
+    const dirInfo = await FileSystem.getInfoAsync(dirPath);
+    
+    if (!dirInfo.exists) {
+      await FileSystem.makeDirectoryAsync(dirPath, { intermediates: true });
+    }
+    
+    // Get file name from URI
+    const fileName = fileUri.split('/').pop() || 'file';
+    
+    // Create a unique file path
+    const newFilePath = `${dirPath}${assignmentId}_${fileName}`;
+    
+    // Copy file to new location
+    await FileSystem.copyAsync({
+      from: fileUri,
+      to: newFilePath
+    });
+    
+    return { filePath: newFilePath, fileName };
+  } catch (error) {
+    console.error('Error saving file:', error);
+    throw error;
+  }
 }
 
 export { db };
