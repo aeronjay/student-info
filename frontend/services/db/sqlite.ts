@@ -5,6 +5,63 @@ export type UserRole = 'student' | 'professor';
 export type PostType = 'assignment' | 'announcement';
 export type SubmissionStatus = 'pending' | 'submitted' | 'graded';
 
+// Define types for database results
+export interface Class {
+  id: string;
+  classCode: string;
+  scheduleStart: string;
+  scheduleEnd: string;
+  subject: string;
+  subjectInfo: string;
+  subjectCode: string;
+  professorId: string;
+}
+
+export interface StudentInClass {
+  id: string;
+  name: string;
+  email: string;
+  midterm: number | null;
+  final: number | null;
+}
+
+export interface StudentGrade {
+  id: string;
+  studentId: string;
+  classId: string;
+  midterm: number | null;
+  final: number | null;
+  updatedAt: string;
+  subject?: string;
+  subjectCode?: string;
+  subjectInfo?: string;
+  professorName?: string;
+}
+
+export interface Assignment {
+  id: string;
+  classId: string;
+  title: string;
+  content: string;
+  type: string;
+  dueDate: string | null;
+  createdAt: string;
+  subject?: string;
+  subjectCode?: string;
+  status?: string;
+  grade?: string;
+  filePath?: string;
+  fileName?: string;
+  submissionId?: string;
+}
+
+export interface ClassGradeStats {
+  totalStudents: number;
+  gradedStudents: number;
+  avgMidterm: string;
+  avgFinal: string;
+}
+
 const db = SQLite.openDatabaseSync('studentinfo.db');
 
 export function initDatabase() {
@@ -70,6 +127,20 @@ export function initDatabase() {
       FOREIGN KEY (studentId) REFERENCES users (id)
     );`
   );
+
+  // Create student grades table for exams
+  db.runSync(
+    `CREATE TABLE IF NOT EXISTS student_grades (
+      id TEXT PRIMARY KEY NOT NULL,
+      studentId TEXT NOT NULL,
+      classId TEXT NOT NULL,
+      midterm REAL,
+      final REAL,
+      updatedAt TEXT NOT NULL,
+      FOREIGN KEY (studentId) REFERENCES users (id),
+      FOREIGN KEY (classId) REFERENCES classes (id)
+    );`
+  );
 }
 
 function generateClassCode(length = 7) {
@@ -116,17 +187,17 @@ export function joinClass(studentId: string, classId: string) {
   );
 }
 
-export function getProfessorClasses(professorId: string) {
-  return db.getAllSync('SELECT * FROM classes WHERE professorId = ?', [professorId]);
+export function getProfessorClasses(professorId: string): Class[] {
+  return db.getAllSync('SELECT * FROM classes WHERE professorId = ?', [professorId]) as Class[];
 }
 
-export function getStudentClasses(studentId: string) {
+export function getStudentClasses(studentId: string): Class[] {
   return db.getAllSync(
     `SELECT c.* FROM classes c
      JOIN student_classes sc ON c.id = sc.classId
      WHERE sc.studentId = ?`,
     [studentId]
-  );
+  ) as Class[];
 }
 
 export function getClassByCode(classCode: string) {
@@ -160,7 +231,7 @@ export function getClassDetails(classId: string) {
   return db.getFirstSync('SELECT * FROM classes WHERE id = ?', [classId]);
 }
 
-export function getStudentAllAssignments(studentId: string) {
+export function getStudentAllAssignments(studentId: string): Assignment[] {
   return db.getAllSync(
     `SELECT cp.*, c.subject, c.subjectCode, 
             COALESCE(sub.status, 'pending') as status,
@@ -172,7 +243,7 @@ export function getStudentAllAssignments(studentId: string) {
      WHERE sc.studentId = ? AND cp.type = 'assignment'
      ORDER BY cp.dueDate ASC`,
     [studentId, studentId]
-  );
+  ) as Assignment[];
 }
 
 // New functions for assignment submissions
@@ -264,6 +335,81 @@ export async function saveSubmissionFile(fileUri: string, studentId: string, ass
     console.error('Error saving file:', error);
     throw error;
   }
+}
+
+// New functions for handling student grades
+export function getStudentsInClass(classId: string): StudentInClass[] {
+  return db.getAllSync(
+    `SELECT u.id, u.name, u.email, sg.midterm, sg.final
+     FROM users u
+     JOIN student_classes sc ON u.id = sc.studentId
+     LEFT JOIN student_grades sg ON u.id = sg.studentId AND sg.classId = ?
+     WHERE sc.classId = ? AND u.role = 'student'
+     ORDER BY u.name`,
+    [classId, classId]
+  ) as StudentInClass[];
+}
+
+export function saveStudentGrade(
+  id: string,
+  studentId: string,
+  classId: string,
+  midterm: number | null = null,
+  final: number | null = null
+): void {
+  const updatedAt = new Date().toISOString();
+  
+  // Check if the student already has a grade record for this class
+  const existingGrade = db.getFirstSync(
+    'SELECT id FROM student_grades WHERE studentId = ? AND classId = ?',
+    [studentId, classId]
+  );
+  
+  if (existingGrade) {
+    // Update existing record
+    db.runSync(
+      'UPDATE student_grades SET midterm = ?, final = ?, updatedAt = ? WHERE studentId = ? AND classId = ?',
+      [midterm, final, updatedAt, studentId, classId]
+    );
+  } else {
+    // Insert new record
+    db.runSync(
+      'INSERT INTO student_grades (id, studentId, classId, midterm, final, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
+      [id, studentId, classId, midterm, final, updatedAt]
+    );
+  }
+}
+
+export function getStudentGrades(studentId: string): StudentGrade[] {
+  return db.getAllSync(
+    `SELECT sg.*, c.subject, c.subjectCode, c.subjectInfo, u.name as professorName
+     FROM student_grades sg
+     JOIN classes c ON sg.classId = c.id
+     JOIN users u ON c.professorId = u.id
+     WHERE sg.studentId = ?`,
+    [studentId]
+  ) as StudentGrade[];
+}
+
+export function getClassGradeStats(classId: string): ClassGradeStats {
+  const result = db.getFirstSync(
+    `SELECT 
+       COUNT(DISTINCT sc.studentId) as totalStudents,
+       COUNT(DISTINCT sg.studentId) as gradedStudents,
+       AVG(sg.midterm) as avgMidterm,
+       AVG(sg.final) as avgFinal
+     FROM student_classes sc
+     LEFT JOIN student_grades sg ON sc.studentId = sg.studentId AND sg.classId = sc.classId
+     WHERE sc.classId = ?`,
+    [classId]
+  ) as any;
+  
+  return {
+    totalStudents: result?.totalStudents || 0,
+    gradedStudents: result?.gradedStudents || 0,
+    avgMidterm: result?.avgMidterm ? parseFloat(result.avgMidterm).toFixed(1) : 'N/A',
+    avgFinal: result?.avgFinal ? parseFloat(result.avgFinal).toFixed(1) : 'N/A'
+  };
 }
 
 export { db };
