@@ -218,21 +218,23 @@ export default function ScheduleScreen() {
           {/* Weekly Overview */}
           <View className="mt-6 mb-8">
             <Text className="text-2xl font-bold text-white mb-4">Weekly Overview</Text>
-            <View className="flex-row justify-between mb-6">
-              {DAYS_OF_WEEK.slice(0, 5).map((day, index) => (
-                <TouchableOpacity 
-                  key={day} 
-                  className={`w-16 h-16 rounded-lg items-center justify-center ${
-                    index === selectedDayIndex ? 'bg-blue-600' : 'bg-gray-800'
-                  }`}
-                  onPress={() => setSelectedDayIndex(index)}
-                >
-                  <Text className="text-white font-bold">{day.substring(0, 3)}</Text>
-                  <Text className="text-white">{classCountByDay[index]}</Text>
-                  <Text className="text-white text-xs">classes</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
+              <View className="flex-row">
+                {DAYS_OF_WEEK.map((day, index) => (
+                  <TouchableOpacity 
+                    key={day} 
+                    className={`w-16 h-16 rounded-lg items-center justify-center mx-1 ${
+                      index === selectedDayIndex ? 'bg-blue-600' : 'bg-gray-800'
+                    }`}
+                    onPress={() => setSelectedDayIndex(index)}
+                  >
+                    <Text className="text-white font-bold">{day.substring(0, 3)}</Text>
+                    <Text className="text-white">{classCountByDay[index]}</Text>
+                    <Text className="text-white text-xs">classes</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
             
             {/* Classes for the day */}
             <Text className="text-2xl font-bold text-white mb-4">Classes on {selectedDay}</Text>
