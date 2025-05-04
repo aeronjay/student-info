@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useColorScheme } from 'nativewind';
-import { MaterialCommunityIcons, FontAwesome5, Ionicons, Feather, FontAwesome } from '@expo/vector-icons';
+import { MaterialCommunityIcons, FontAwesome5, Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { View } from 'react-native';
 
@@ -53,15 +53,6 @@ export default function ProfessorTabsLayout() {
               title: 'Grading',
               tabBarIcon: ({ color }) => (
                 <FontAwesome name="graduation-cap" size={20} color={color} />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="messages"
-            options={{
-              title: 'Messages',
-              tabBarIcon: ({ color }) => (
-                <Ionicons name="chatbubble-ellipses-outline" size={23} color={color} />
               ),
             }}
           />

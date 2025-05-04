@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useColorScheme } from 'nativewind';
-import { MaterialCommunityIcons, FontAwesome5, Ionicons, Feather } from '@expo/vector-icons';
+import { MaterialCommunityIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { View } from 'react-native';
 
@@ -39,6 +39,15 @@ export default function StudentTabsLayout() {
             }}
           />
           <Tabs.Screen
+            name="classes"
+            options={{
+              title: 'Classes',
+              tabBarIcon: ({ color }) => (
+                <FontAwesome5 name="chalkboard" size={20} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
             name="schedule"
             options={{
               title: 'Schedule',
@@ -62,15 +71,6 @@ export default function StudentTabsLayout() {
               title: 'Grades',
               tabBarIcon: ({ color }) => (
                 <MaterialCommunityIcons name="clipboard-list-outline" size={22} color={color} />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="messages"
-            options={{
-              title: 'Messages',
-              tabBarIcon: ({ color }) => (
-                <Feather name="message-square" size={21} color={color} />
               ),
             }}
           />

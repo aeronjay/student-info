@@ -40,6 +40,16 @@ export default function ScheduleScreen() {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [classDetailVisible, setClassDetailVisible] = useState(false);
   
+  // Colors based on theme
+  const bgColor = isDark ? 'bg-gray-900' : 'bg-white';
+  const textColor = isDark ? 'text-white' : 'text-gray-900';
+  const textColorDim = isDark ? 'text-gray-400' : 'text-gray-500';
+  const primaryColor = isDark ? 'bg-blue-700' : 'bg-blue-600';
+  const secondaryColor = isDark ? 'bg-gray-800' : 'bg-gray-100';
+  const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
+  const classBlockColor = isDark ? 'bg-blue-900' : 'bg-blue-600';
+  const highlightTextColor = isDark ? 'text-blue-300' : 'text-blue-100';
+  
   // Get the current day name
   const selectedDay = DAYS_OF_WEEK[selectedDayIndex];
   
@@ -137,10 +147,10 @@ export default function ScheduleScreen() {
         size={64} 
         color={isDark ? '#4b5563' : '#d1d5db'} 
       />
-      <Text className="text-lg font-bold text-gray-400 mt-4 mb-2">
+      <Text className={`text-lg font-bold ${textColorDim} mt-4 mb-2`}>
         No classes scheduled
       </Text>
-      <Text className="text-center text-gray-500 px-8">
+      <Text className={`text-center ${textColorDim} px-8`}>
         Join classes to see them in your schedule
       </Text>
     </View>
@@ -154,8 +164,8 @@ export default function ScheduleScreen() {
     
     if (classesInSlot.length === 0) {
       return (
-        <View className="flex-1 border border-dashed border-gray-600 rounded-lg m-1 justify-center items-center">
-          <Text className="text-gray-500">Available</Text>
+        <View className={`flex-1 border border-dashed ${borderColor} rounded-lg m-1 justify-center items-center`}>
+          <Text className={textColorDim}>Available</Text>
         </View>
       );
     }
@@ -165,12 +175,12 @@ export default function ScheduleScreen() {
         {classesInSlot.map(classItem => (
           <TouchableOpacity
             key={classItem.id}
-            className="bg-blue-800 rounded-lg p-3 mb-1"
+            className={`${classBlockColor} rounded-lg p-3 mb-1`}
             onPress={() => handleOpenClassDetail(classItem.id)}
           >
             <Text className="text-lg font-bold text-white">{classItem.subject}</Text>
             <Text className="text-gray-300">{classItem.subjectCode}</Text>
-            <Text className="text-blue-300 text-xs">
+            <Text className={highlightTextColor + " text-xs"}>
               {formatClassTime(classItem.scheduleStart)} - {formatClassTime(classItem.scheduleEnd)}
             </Text>
           </TouchableOpacity>
@@ -180,23 +190,23 @@ export default function ScheduleScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-900">
+    <View className={`flex-1 ${bgColor}`}>
       {/* Header with day navigation */}
-      <View className="flex-row items-center justify-between px-6 py-4 bg-gray-900">
+      <View className={`flex-row items-center justify-between px-6 py-4 ${bgColor}`}>
         <TouchableOpacity onPress={goToPreviousDay} className="p-2">
-          <MaterialCommunityIcons name="chevron-left" size={28} color="#fff" />
+          <MaterialCommunityIcons name="chevron-left" size={28} color={isDark ? "#fff" : "#333"} />
         </TouchableOpacity>
         
-        <Text className="text-3xl font-bold text-white">{selectedDay}</Text>
+        <Text className={`text-3xl font-bold ${textColor}`}>{selectedDay}</Text>
         
         <TouchableOpacity onPress={goToNextDay} className="p-2">
-          <MaterialCommunityIcons name="chevron-right" size={28} color="#fff" />
+          <MaterialCommunityIcons name="chevron-right" size={28} color={isDark ? "#fff" : "#333"} />
         </TouchableOpacity>
       </View>
       
       {loading ? (
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#60a5fa" />
+          <ActivityIndicator size="large" color={isDark ? "#60a5fa" : "#3b82f6"} />
         </View>
       ) : (
         <ScrollView className="flex-1 px-4">
@@ -204,9 +214,9 @@ export default function ScheduleScreen() {
           {TIME_SLOTS.map((timeSlot, index) => (
             <View key={index} className="flex-row mb-3 h-auto min-h-24">
               <View className="w-16 justify-center items-center">
-                <Text className="text-gray-400">{timeSlot.start}</Text>
-                <View className="h-16 border-r border-gray-700" />
-                <Text className="text-gray-400">{timeSlot.end}</Text>
+                <Text className={textColorDim}>{timeSlot.start}</Text>
+                <View className={`h-16 border-r ${borderColor}`} />
+                <Text className={textColorDim}>{timeSlot.end}</Text>
               </View>
               
               {renderClassBlock(timeSlot)}
@@ -217,50 +227,50 @@ export default function ScheduleScreen() {
           
           {/* Weekly Overview */}
           <View className="mt-6 mb-8">
-            <Text className="text-2xl font-bold text-white mb-4">Weekly Overview</Text>
+            <Text className={`text-2xl font-bold ${textColor} mb-4`}>Weekly Overview</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
               <View className="flex-row">
                 {DAYS_OF_WEEK.map((day, index) => (
                   <TouchableOpacity 
                     key={day} 
                     className={`w-16 h-16 rounded-lg items-center justify-center mx-1 ${
-                      index === selectedDayIndex ? 'bg-blue-600' : 'bg-gray-800'
+                      index === selectedDayIndex ? primaryColor : secondaryColor
                     }`}
                     onPress={() => setSelectedDayIndex(index)}
                   >
-                    <Text className="text-white font-bold">{day.substring(0, 3)}</Text>
-                    <Text className="text-white">{classCountByDay[index]}</Text>
-                    <Text className="text-white text-xs">classes</Text>
+                    <Text className={index === selectedDayIndex ? "text-white font-bold" : textColor}>{day.substring(0, 3)}</Text>
+                    <Text className={index === selectedDayIndex ? "text-white" : textColor}>{classCountByDay[index]}</Text>
+                    <Text className={index === selectedDayIndex ? "text-white text-xs" : `${textColorDim} text-xs`}>classes</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </ScrollView>
             
             {/* Classes for the day */}
-            <Text className="text-2xl font-bold text-white mb-4">Classes on {selectedDay}</Text>
+            <Text className={`text-2xl font-bold ${textColor} mb-4`}>Classes on {selectedDay}</Text>
             {classesForSelectedDay.length > 0 ? (
               classesForSelectedDay.map(classItem => (
                 <TouchableOpacity
                   key={classItem.id}
-                  className="bg-gray-800 rounded-lg p-4 mb-3"
+                  className={`${secondaryColor} rounded-lg p-4 mb-3`}
                   onPress={() => handleOpenClassDetail(classItem.id)}
                 >
                   <View className="flex-row justify-between items-center">
                     <View>
-                      <Text className="text-xl font-bold text-white">{classItem.subject}</Text>
-                      <Text className="text-gray-400">
+                      <Text className={`text-xl font-bold ${textColor}`}>{classItem.subject}</Text>
+                      <Text className={textColorDim}>
                         {formatClassTime(classItem.scheduleStart)} - {formatClassTime(classItem.scheduleEnd)}
                       </Text>
                     </View>
                     <View className="items-end">
-                      <Text className="text-white">{classItem.subjectCode}</Text>
+                      <Text className={textColor}>{classItem.subjectCode}</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
               ))
             ) : (
-              <View className="bg-gray-800 rounded-lg p-6 items-center">
-                <Text className="text-white text-lg">No classes on {selectedDay}</Text>
+              <View className={`${secondaryColor} rounded-lg p-6 items-center`}>
+                <Text className={`${textColor} text-lg`}>No classes on {selectedDay}</Text>
               </View>
             )}
           </View>
