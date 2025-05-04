@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Pressable, useColorScheme } from 'react-native';
 import { useUser } from '../../../context/UserContext';
 import { getClassDetails, getClassPosts } from '../../../services/db/sqlite';
 import DraggableModal from './DraggableModal';
@@ -37,6 +37,8 @@ export default function ClassDetailModal({ visible, onClose, classId, isTeacher 
   const [loading, setLoading] = useState(true);
   const [classDetails, setClassDetails] = useState<ClassDetails | null>(null);
   const [posts, setPosts] = useState<ClassPost[]>([]);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   useEffect(() => {
     if (visible && classId) {
@@ -88,27 +90,27 @@ export default function ClassDetailModal({ visible, onClose, classId, isTeacher 
 
   const renderPostItem = (post: ClassPost) => {
     return (
-      <View key={post.id} style={styles.postItem}>
+      <View key={post.id} style={[styles.postItem, { backgroundColor: isDark ? '#374151' : '#f3f4f6' }]}>
         <View style={styles.postHeader}>
           <View style={styles.postTypeContainer}>
             {post.type === 'assignment' ? (
-              <MaterialCommunityIcons name="clipboard-text" size={20} color="#3b82f6" />
+              <MaterialCommunityIcons name="clipboard-text" size={20} color={isDark ? '#93c5fd' : '#3b82f6'} />
             ) : (
-              <MaterialCommunityIcons name="bullhorn" size={20} color="#3b82f6" />
+              <MaterialCommunityIcons name="bullhorn" size={20} color={isDark ? '#93c5fd' : '#3b82f6'} />
             )}
-            <Text style={styles.postType}>
+            <Text style={[styles.postType, { color: isDark ? '#93c5fd' : '#3b82f6' }]}>
               {post.type === 'assignment' ? 'Assignment' : 'Announcement'}
             </Text>
           </View>
-          <Text style={styles.postDate}>{formatDate(post.createdAt)}</Text>
+          <Text style={[styles.postDate, { color: isDark ? '#9ca3af' : '#6b7280' }]}>{formatDate(post.createdAt)}</Text>
         </View>
         
-        <Text style={styles.postTitle}>{post.title}</Text>
-        <Text style={styles.postContent}>{post.content}</Text>
+        <Text style={[styles.postTitle, { color: isDark ? '#f3f4f6' : '#1f2937' }]}>{post.title}</Text>
+        <Text style={[styles.postContent, { color: isDark ? '#d1d5db' : '#4b5563' }]}>{post.content}</Text>
         
         {post.type === 'assignment' && post.dueDate && (
-          <View style={styles.dueDate}>
-            <Text style={styles.dueDateText}>
+          <View style={[styles.dueDate, { backgroundColor: isDark ? '#1e3a8a' : '#dbeafe' }]}>
+            <Text style={[styles.dueDateText, { color: isDark ? '#93c5fd' : '#1e40af' }]}>
               Due: {formatDueDate(post.dueDate)}
             </Text>
           </View>
@@ -130,18 +132,18 @@ export default function ClassDetailModal({ visible, onClose, classId, isTeacher 
           <ScrollView style={styles.scrollView}>
             {classDetails && (
               <View style={styles.classInfoSection}>
-                <Text style={styles.classCode}>{classDetails.subjectCode}</Text>
-                <Text style={styles.classDescription}>{classDetails.subjectInfo}</Text>
-                <Text style={styles.classSchedule}>
+                <Text style={[styles.classCode, { color: isDark ? '#9ca3af' : '#6b7280' }]}>{classDetails.subjectCode}</Text>
+                <Text style={[styles.classDescription, { color: isDark ? '#d1d5db' : '#4b5563' }]}>{classDetails.subjectInfo}</Text>
+                <Text style={[styles.classSchedule, { color: isDark ? '#d1d5db' : '#4b5563' }]}>
                   {formatSchedule(classDetails.scheduleStart, classDetails.scheduleEnd)}
                 </Text>
               </View>
             )}
 
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: isDark ? '#374151' : '#e5e7eb' }]} />
             
             <View style={styles.postsSection}>
-              <Text style={styles.sectionTitle}>
+              <Text style={[styles.sectionTitle, { color: isDark ? '#f3f4f6' : '#1f2937' }]}>
                 {posts.length > 0 ? 'Assignments & Announcements' : 'No assignments or announcements yet'}
               </Text>
               
@@ -180,35 +182,29 @@ const styles = StyleSheet.create({
   classCode: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#6b7280',
     marginBottom: 5,
   },
   classDescription: {
     fontSize: 14,
-    color: '#4b5563',
     marginBottom: 10,
   },
   classSchedule: {
     fontSize: 14,
-    color: '#4b5563',
     fontStyle: 'italic',
   },
   divider: {
     height: 1,
-    backgroundColor: '#e5e7eb',
     marginVertical: 15,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#1f2937',
   },
   postsSection: {
     marginBottom: 20,
   },
   postItem: {
-    backgroundColor: '#f3f4f6',
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
@@ -226,33 +222,27 @@ const styles = StyleSheet.create({
   postType: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#3b82f6',
     marginLeft: 5,
   },
   postDate: {
     fontSize: 12,
-    color: '#6b7280',
   },
   postTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
-    color: '#1f2937',
   },
   postContent: {
     fontSize: 14,
-    color: '#4b5563',
     marginBottom: 10,
   },
   dueDate: {
-    backgroundColor: '#dbeafe',
     padding: 8,
     borderRadius: 5,
     alignSelf: 'flex-start',
   },
   dueDateText: {
     fontSize: 12,
-    color: '#1e40af',
     fontWeight: 'bold',
   },
   fabContainer: {

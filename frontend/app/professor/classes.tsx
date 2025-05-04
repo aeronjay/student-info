@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, Alert, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Pressable, FlatList, Alert, Modal, TouchableOpacity, useColorScheme } from 'react-native';
 import { useUser } from '../../context/UserContext';
 import { 
   insertClass, 
@@ -40,6 +40,8 @@ export default function ClassesScreen() {
   const [refresh, setRefresh] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [createdClassCode, setCreatedClassCode] = useState<string | null>(null);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   
   // Class Detail Modal state
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -226,7 +228,7 @@ export default function ClassesScreen() {
       {/* Create Post Modal */}
       <Modal visible={showPostModal} animationType="slide" transparent>
         <Pressable className="flex-1 bg-black/40 justify-end" onPress={() => setShowPostModal(false)}>
-          <Pressable onPress={() => {}} className="bg-white dark:bg-gray-900 rounded-t-2xl p-6" style={{ elevation: 10 }}>
+          <Pressable onPress={() => {}} className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-t-2xl p-6`} style={{ elevation: 10 }}>
             <Pressable onPress={() => setShowPostModal(false)} className="mb-4">
               <Text className="text-blue-600 dark:text-blue-300 font-semibold">Cancel</Text>
             </Pressable>
@@ -275,10 +277,21 @@ export default function ClassesScreen() {
             {postType === 'assignment' && (
               <Pressable onPress={() => setPickerMode('due')} className="mb-4 bg-gray-100 dark:bg-gray-800 rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-700">
                 <Text className="text-gray-700 dark:text-gray-300">
-                  {dueDate ? `Due: ${dueDate.toLocaleDateString()}` : 'Set Due Date'}
+                  {dueDate ? `Due: ${dueDate.toLocaleString()}` : 'Set Due Date'}
                 </Text>
               </Pressable>
             )}
+            
+            <DateTimePickerModal
+              isVisible={pickerMode === 'due'}
+              mode="datetime"
+              date={dueDate || new Date()}
+              onConfirm={(date: Date) => {
+                setDueDate(date);
+                setPickerMode(null);
+              }}
+              onCancel={() => setPickerMode(null)}
+            />
             
             <Pressable className="bg-blue-600 py-3 rounded-full items-center" onPress={handleCreatePost}>
               <Text className="text-white font-bold">Post</Text>

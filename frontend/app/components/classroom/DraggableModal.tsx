@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Modal, StyleSheet, Pressable, Animated, PanResponder, Dimensions, Text, StatusBar } from 'react-native';
+import { View, Modal, StyleSheet, Pressable, Animated, PanResponder, Dimensions, Text, StatusBar, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface DraggableModalProps {
@@ -16,6 +16,8 @@ export default function DraggableModal({ visible, onClose, children, title }: Dr
   const pan = useRef(new Animated.ValueXY()).current;
   const [modalHeight, setModalHeight] = useState(0);
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const panResponder = useRef(
     PanResponder.create({
@@ -62,21 +64,27 @@ export default function DraggableModal({ visible, onClose, children, title }: Dr
             styles.modalContainer,
             {
               transform: [{ translateY: pan.y }],
-              paddingTop: insets.top, // Add padding equal to the status bar height
+              paddingTop: insets.top,
               maxHeight: SCREEN_HEIGHT,
+              backgroundColor: isDark ? '#1f2937' : 'white',
             },
           ]}
           onLayout={(event) => setModalHeight(event.nativeEvent.layout.height)}
         >
-          <Pressable style={styles.modalContent} onPress={() => {}}>
+          <Pressable 
+            style={[
+              styles.modalContent,
+            ]} 
+            onPress={() => {}}
+          >
             {/* Drag handle - placed at the top for visibility */}
             <View {...panResponder.panHandlers} style={styles.dragHandle}>
-              <View style={styles.dragIndicator} />
+              <View style={[styles.dragIndicator, { backgroundColor: isDark ? '#4b5563' : '#ccc' }]} />
             </View>
             
             {title && (
-              <View style={styles.titleContainer}>
-                <Text style={styles.title}>{title}</Text>
+              <View style={[styles.titleContainer, { borderBottomColor: isDark ? '#374151' : '#eee' }]}>
+                <Text style={[styles.title, { color: isDark ? '#93c5fd' : '#3b82f6' }]}>{title}</Text>
               </View>
             )}
             
@@ -96,7 +104,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     overflow: 'hidden',
@@ -112,28 +119,25 @@ const styles = StyleSheet.create({
     height: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10, // Give some space at the top
+    marginTop: 10,
   },
   dragIndicator: {
     width: 40,
     height: 5,
     borderRadius: 5,
-    backgroundColor: '#ccc',
   },
   childrenContainer: {
     paddingHorizontal: 20,
-    flex: 1, // Make children container expand to fill available space
+    flex: 1,
   },
   titleContainer: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
     marginBottom: 10,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#3b82f6',
     textAlign: 'center',
   },
 });
