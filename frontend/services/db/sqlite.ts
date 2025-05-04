@@ -140,4 +140,16 @@ export function getClassDetails(classId: string) {
   return db.getFirstSync('SELECT * FROM classes WHERE id = ?', [classId]);
 }
 
+export function getStudentAllAssignments(studentId: string) {
+  return db.getAllSync(
+    `SELECT cp.*, c.subject, c.subjectCode 
+     FROM class_posts cp
+     JOIN classes c ON cp.classId = c.id
+     JOIN student_classes sc ON c.id = sc.classId
+     WHERE sc.studentId = ? AND cp.type = 'assignment'
+     ORDER BY cp.dueDate ASC`,
+    [studentId]
+  );
+}
+
 export { db };
